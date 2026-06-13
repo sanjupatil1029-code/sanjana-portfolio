@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanjana Patil | Aspiring Software Engineer Portfolio</title>
+    <meta name="description" content="Portfolio of Sanjana Patil, an aspiring software engineer specializing in GenAI, Prompt Engineering, DSA, and Web Development. Check out interactive projects like Khet Saathi.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#0a0b0e',
+                            cyan: '#00f0ff',
+                            pink: '#ff007f',
+                            purple: '#9d00ff',
+                            green: '#39ff14',
+                            orange: '#ff5e00',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- CSS stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-cyber-dark text-slate-100 select-none overflow-x-hidden">
+
+    <!-- Interactive Canvas Background -->
+    <canvas id="bg-canvas"></canvas>
+    
+    <!-- CRT monitor overlay scanlines -->
+    <div class="cyber-overlay"></div>
+
+    <!-- Custom Cursor -->
+    <div class="custom-cursor hidden md:block" id="cursor-outline"></div>
+    <div class="custom-cursor-dot hidden md:block" id="cursor-dot"></div>
+
+    <!-- Floating Sticker Drawer Panel -->
+    <div id="sticker-drawer" class="fixed top-1/2 right-0 -translate-y-1/2 z-50 bg-[#0d1117]/95 border-l-2 border-y-2 border-cyber-cyan rounded-l-2xl shadow-[0_0_20px_rgba(0,240,255,0.15)] p-4 flex flex-col items-center gap-3 transition-transform duration-300 translate-x-[calc(100%-40px)] hover:translate-x-0 w-64 max-h-[80vh] overflow-y-auto">
+        <!-- Drawer Toggle Tab -->
+        <div class="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-full bg-cyber-dark border-l-2 border-y-2 border-cyber-cyan p-2.5 rounded-l-lg cursor-pointer flex flex-col items-center gap-2 select-none w-10 text-cyber-cyan hover:text-white transition-colors duration-200">
+            <i class="fa-solid fa-note-sticky text-lg"></i>
+            <span class="text-[9px] font-bold tracking-widest [writing-mode:vertical-lr] uppercase">Stickers</span>
+            <i class="fa-solid fa-chevron-left animate-pulse"></i>
+        </div>
+        
+        <h4 class="text-xs font-bold tracking-widest text-cyber-cyan border-b border-cyber-cyan/30 pb-2 w-full text-center uppercase font-mono">Sticker Inventory</h4>
+        <p class="text-[9px] text-slate-400 text-center font-mono">Drag stickers onto the screen! Double-click them to spin. Drag them to the bottom bin to delete.</p>
+        
+        <!-- Sticker Items Container -->
+        <div class="grid grid-cols-2 gap-3 mt-2 w-full">
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/large_front.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="large_front" alt="Large Front">
+                <span class="text-[8px] font-mono text-slate-400">Front (L)</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/right_profile.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="right_profile" alt="Right Profile">
+                <span class="text-[8px] font-mono text-slate-400">Right (P)</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/left_profile.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="left_profile" alt="Left Profile">
+                <span class="text-[8px] font-mono text-slate-400">Left (P)</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/small_front_right.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="small_front_right" alt="Small Right">
+                <span class="text-[8px] font-mono text-slate-400">Companion R</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/back_left.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="back_left" alt="Back Left">
+                <span class="text-[8px] font-mono text-slate-400">Back L</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/back.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="back" alt="Back">
+                <span class="text-[8px] font-mono text-slate-400">Back</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 bg-cyber-dark/40 p-2 rounded border border-white/5">
+                <img src="stickers/small_front_left.png" class="sticker-pack-item h-16 object-contain pointer-events-auto" data-pose="small_front_left" alt="Small Left">
+                <span class="text-[8px] font-mono text-slate-400">Companion L</span>
+            </div>
+            <!-- Interactive Sticker Party Trigger -->
+            <button id="sticker-party-btn" class="col-span-2 py-1.5 px-2 bg-cyber-pink/20 border border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white text-[10px] font-mono rounded tracking-widest transition-all duration-300 active:scale-95">
+                STICKER PARTY 🎉
+            </button>
+            <!-- Clear Stickers Trigger -->
+            <button id="clear-stickers-btn" class="col-span-2 py-1.5 px-2 bg-red-500/10 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-[10px] font-mono rounded tracking-widest transition-all duration-300 active:scale-95 hidden">
+                CLEAR STICKERS 🧹
+            </button>
+        </div>
+
+        <!-- Recycle Bin / Delete Area -->
+        <div id="sticker-bin" class="w-full mt-4 p-3 border border-dashed border-red-500/30 rounded flex flex-col items-center justify-center gap-1 bg-red-950/10 hover:bg-red-950/30 hover:border-red-500 transition-all duration-200">
+            <i class="fa-solid fa-trash-can text-red-500/50 text-sm"></i>
+            <span class="text-[8px] font-mono text-red-500/50 uppercase tracking-widest">DRAG HERE TO REMOVE</span>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 w-full z-40 bg-cyber-dark/80 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center">
+        <a href="#hero" class="text-xl font-bold font-mono tracking-wider text-cyber-cyan text-glow-cyan hover:text-white transition-colors duration-200">
+            SANJANA_PATIL<span class="animate-pulse font-normal"> //</span>
+        </a>
+        <nav class="hidden lg:flex items-center gap-8 text-xs font-mono text-slate-400 tracking-wider">
+            <a href="#hero" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[01_HOME]</a>
+            <a href="#stats" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[02_STATS]</a>
+            <a href="#education" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[03_EDUCATION]</a>
+            <a href="#skills" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[04_SKILLS]</a>
+            <a href="#projects" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[05_PROJECTS]</a>
+            <a href="#terminal" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[06_CORE_SHELL]</a>
+            <a href="#contact" class="hover:text-cyber-cyan transition-colors duration-200 hover:text-glow-cyan">[07_CONTACT]</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <button id="sound-toggle" class="p-2 border border-cyber-cyan/30 text-cyber-cyan rounded-lg hover:bg-cyber-cyan/10 transition-colors text-xs font-mono" title="Toggle audio feedback">
+                <i class="fa-solid fa-volume-xmark"></i>
+            </button>
+            <a href="#contact" class="btn-cyber px-4 py-1.5 rounded text-xs select-none tracking-widest uppercase">
+                INJECT_TRANSMISSION
+            </a>
+        </div>
+    </header>
+
+    <!-- Matrix Falling Code Screen Container -->
+    <div id="matrix-overlay" class="matrix-overlay">
+        <button id="matrix-close-btn" class="btn-cyber btn-cyber-pink py-2 px-4 rounded text-xs font-mono tracking-widest uppercase">
+            EXIT_MATRIX
+        </button>
+        <canvas id="matrix-canvas" class="matrix-canvas"></canvas>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full pt-24">
+
+        <!-- 01_HERO SECTION -->
+        <section id="hero" class="min-h-screen py-16 px-6 md:px-12 flex flex-col lg:flex-row items-center justify-between gap-12 max-w-7xl mx-auto relative grid-lines">
+            <div class="flex-1 flex flex-col gap-6 select-text">
+                <div class="inline-flex items-center gap-2 bg-cyber-pink/10 border border-cyber-pink/30 px-3 py-1 rounded-full text-xs font-mono text-cyber-pink w-fit">
+                    <span class="w-2 h-2 rounded-full bg-cyber-pink animate-ping"></span>
+                    SYSTEM_INITIALIZED
+                </div>
+                
+                <h2 class="text-xs md:text-sm font-mono tracking-[0.3em] text-cyber-cyan uppercase font-bold">
+                    Aspiring Software Engineer // GenAI Developer
+                </h2>
+                
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
+                    Hello, I'm <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-pink text-glow-cyan">
+                        Sanjana Patil
+                    </span>
+                </h1>
+                
+                <p class="text-slate-400 text-sm md:text-base max-w-lg leading-relaxed font-sans">
+                    Software engineering student passionate about designing full-stack applications, optimizing data structures, and deploying Generative AI models. Welcome to my creative command center! Feel free to drag stickers around, query the terminal, or hack the matrix.
+                </p>
+
+                <!-- Interactive Typing Terminal Display -->
+                <div class="bg-black/60 border border-cyber-cyan/20 p-3 rounded-lg font-mono text-xs text-cyber-cyan flex items-center gap-2 max-w-md">
+                    <span class="text-cyber-pink">guest@sanjana:~$</span>
+                    <span id="typing-text" class="text-white"></span>
+                    <span class="animate-pulse">_</span>
+                </div>
+                
+                <div class="flex flex-wrap gap-4 mt-2">
+                    <a href="#projects" class="btn-cyber px-6 py-3 rounded text-sm tracking-wider uppercase">
+                        View_Projects
+                    </a>
+                    <a href="#terminal" class="px-6 py-3 border border-white/10 hover:border-cyber-pink hover:bg-cyber-pink/5 text-slate-300 hover:text-cyber-pink rounded text-sm font-mono tracking-wider transition-all duration-300 uppercase">
+                        Run_Shell
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero Avatar Mascot Box -->
+            <div class="flex-1 flex flex-col items-center justify-center relative min-h-[450px] w-full">
+                <!-- Floating neon backplates -->
+                <div class="absolute w-72 h-72 rounded-full bg-cyber-cyan/5 blur-[80px]"></div>
+                <div class="absolute w-64 h-64 rounded-full bg-cyber-purple/5 blur-[100px]"></div>
+                
+                <!-- Speech Bubble -->
+                <div class="absolute -top-4 right-1/2 translate-x-1/3 md:translate-x-1/2 w-64 z-10 transition-all duration-300" id="mascot-bubble-container">
+                    <div class="speech-bubble font-mono text-center">
+                        <span id="mascot-speech" class="text-xs">Initializing systems... Welcome! Double click me to spin!</span>
+                    </div>
+                </div>
+                
+                <!-- Main mascot character sticker -->
+                <div class="relative cursor-pointer group mt-12 animate-float" id="hero-mascot-wrapper">
+                    <!-- Glowing circular base -->
+                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-48 h-6 bg-cyber-cyan/25 blur-md rounded-full transform scale-x-150 transition-all duration-300 group-hover:bg-cyber-pink/30"></div>
+                    <!-- Pixel Character -->
+                    <img id="hero-mascot" src="stickers/large_front.png" class="h-80 md:h-[400px] object-contain transition-all duration-300 transform filter drop-shadow-[0_0_15px_rgba(0,240,255,0.4)]" alt="Sanjana's Mascot Character">
+                </div>
+                
+                <div class="mt-6 flex gap-4 text-xs font-mono text-slate-400 bg-cyber-dark/60 border border-white/5 py-2 px-4 rounded-full">
+                    <span>Pose: <span id="mascot-pose-indicator" class="text-cyber-cyan">large_front</span></span>
+                    <span class="text-white/20">|</span>
+                    <span class="cursor-pointer text-cyber-pink hover:text-white" id="cycle-pose-btn">Change Pose <i class="fa-solid fa-rotate-right ml-1"></i></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02_STATS SECTION (RPG Config) -->
+        <section id="stats" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative">
+            <div class="absolute -left-12 top-1/2 w-48 h-48 bg-cyber-purple/5 blur-[100px] rounded-full"></div>
+            
+            <div class="flex flex-col items-center text-center gap-4 mb-16">
+                <div class="text-xs font-mono text-cyber-cyan tracking-widest">[02_RPG_METRICS]</div>
+                <h3 class="text-3xl md:text-5xl font-extrabold">System Configuration</h3>
+                <div class="w-16 h-1 bg-cyber-cyan"></div>
+            </div>
+
+            <!-- Cyber RPG Card Grid -->
+            <div class="grid lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Left panel: Avatar inspect -->
+                <div class="lg:col-span-5 cyber-card rounded-2xl p-6 flex flex-col items-center justify-between border border-white/5 relative min-h-[450px]">
+                    <div class="absolute top-4 left-4 font-mono text-[9px] text-slate-500 uppercase tracking-widest">
+                        PLAYER_VIEWPORT //
+                    </div>
+                    
+                    <!-- Tech metrics corner decorations -->
+                    <div class="absolute top-0 right-0 w-8 h-8 border-t border-r border-cyber-cyan/30 rounded-tr-lg"></div>
+                    <div class="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-cyber-cyan/30 rounded-bl-lg"></div>
+                    
+                    <div class="text-center mt-6 w-full">
+                        <div class="font-mono text-cyber-cyan text-xs">LVL.02 - SOFTWARE_ENGINEER</div>
+                        <h4 class="text-2xl font-bold tracking-wide mt-1">Sanjana Patil</h4>
+                        <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden border border-white/5">
+                            <div class="bg-gradient-to-r from-cyber-cyan to-cyber-purple h-full rounded-full w-[60%]" title="60% to Level 3"></div>
+                        </div>
+                        <div class="flex justify-between font-mono text-[9px] text-slate-400 mt-1">
+                            <span>EXP: 1200 / 2000</span>
+                            <span>NEXT_LVL: 800 XP</span>
+                        </div>
+                    </div>
+
+                    <!-- RPG avatar frame with hover states -->
+                    <div class="w-64 h-64 my-6 bg-slate-950/80 border border-cyber-cyan/15 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">
+                        <!-- Neon scanlines just for the portrait -->
+                        <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%)] bg-[size:100%_8px] pointer-events-none z-10 opacity-40"></div>
+                        <div class="absolute inset-0 bg-cyber-cyan/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        <!-- Avatar pose -->
+                        <img id="stats-avatar" src="stickers/right_profile.png" class="h-48 object-contain transition-all duration-300 filter drop-shadow-[0_0_8px_rgba(0,240,255,0.2)]" alt="Character Portrait">
+                        
+                        <!-- RPG alignment text -->
+                        <div class="absolute bottom-2 font-mono text-[10px] text-cyber-cyan uppercase tracking-widest bg-cyber-dark/95 border border-cyber-cyan/20 px-3 py-1 rounded">
+                            Align: Neutral Creative
+                        </div>
+                    </div>
+
+                    <p class="font-mono text-[10px] text-slate-400 text-center uppercase tracking-wider leading-relaxed">
+                        Hover over the right stat metrics to inspect avatar stances and loadouts.
+                    </p>
+                </div>
+
+                <!-- Right panel: Stat Bars -->
+                <div class="lg:col-span-7 flex flex-col justify-between gap-6">
+                    <!-- Stat Item 1 -->
+                    <div class="cyber-card rounded-2xl p-6 border border-white/5 relative group cursor-pointer" data-pose="right_profile">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan text-xs rounded font-mono font-bold">PS</span>
+                                <h5 class="text-sm font-bold tracking-widest uppercase font-mono text-slate-200 group-hover:text-cyber-cyan transition-colors">Problem Solving & Algorithms</h5>
+                            </div>
+                            <span class="font-mono text-sm text-cyber-cyan text-glow-cyan font-bold">92/100</span>
+                        </div>
+                        <div class="w-full bg-slate-950/80 h-3 rounded-full overflow-hidden border border-white/5">
+                            <div class="stats-bar-inner bg-cyber-cyan h-full rounded-full" style="width: 0%;" data-val="92%"></div>
+                        </div>
+                        <div class="flex justify-between font-mono text-[9px] text-slate-500 mt-1">
+                            <span>DBMS / OOPs / Basic DSA</span>
+                            <span>BUFF: Systematic Analytical Thinking</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat Item 2 -->
+                    <div class="cyber-card rounded-2xl p-6 border border-white/5 relative group cursor-pointer" data-pose="small_front_right">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center text-cyber-purple text-xs rounded font-mono font-bold">AI</span>
+                                <h5 class="text-sm font-bold tracking-widest uppercase font-mono text-slate-200 group-hover:text-cyber-purple transition-colors">AI & Prompt Engineering</h5>
+                            </div>
+                            <span class="font-mono text-sm text-cyber-purple text-glow-pink font-bold">88/100</span>
+                        </div>
+                        <div class="w-full bg-slate-950/80 h-3 rounded-full overflow-hidden border border-white/5">
+                            <div class="stats-bar-inner bg-cyber-purple h-full rounded-full" style="width: 0%;" data-val="88%"></div>
+                        </div>
+                        <div class="flex justify-between font-mono text-[9px] text-slate-500 mt-1">
+                            <span>Generative AI / LLM Orchestration / Prompting</span>
+                            <span>BUFF: Rapid Prototyping</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat Item 3 -->
+                    <div class="cyber-card rounded-2xl p-6 border border-white/5 relative group cursor-pointer" data-pose="large_front">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-cyber-pink/10 border border-cyber-pink/30 flex items-center justify-center text-cyber-pink text-xs rounded font-mono font-bold">FS</span>
+                                <h5 class="text-sm font-bold tracking-widest uppercase font-mono text-slate-200 group-hover:text-cyber-pink transition-colors">Development Stack</h5>
+                            </div>
+                            <span class="font-mono text-sm text-cyber-pink text-glow-pink font-bold">85/100</span>
+                        </div>
+                        <div class="w-full bg-slate-950/80 h-3 rounded-full overflow-hidden border border-white/5">
+                            <div class="stats-bar-inner bg-cyber-pink h-full rounded-full" style="width: 0%;" data-val="85%"></div>
+                        </div>
+                        <div class="flex justify-between font-mono text-[9px] text-slate-500 mt-1">
+                            <span>HTML / CSS / JavaScript / REST APIs / Git</span>
+                            <span>BUFF: Clean Code Semantics</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat Item 4 -->
+                    <div class="cyber-card rounded-2xl p-6 border border-white/5 relative group cursor-pointer" data-pose="small_front_left">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-cyber-green/10 border border-cyber-green/30 flex items-center justify-center text-cyber-green text-xs rounded font-mono font-bold">CM</span>
+                                <h5 class="text-sm font-bold tracking-widest uppercase font-mono text-slate-200 group-hover:text-cyber-green transition-colors">Teamwork & Communication</h5>
+                            </div>
+                            <span class="font-mono text-sm text-cyber-green text-glow-green font-bold">90/100</span>
+                        </div>
+                        <div class="w-full bg-slate-950/80 h-3 rounded-full overflow-hidden border border-white/5">
+                            <div class="stats-bar-inner bg-cyber-green h-full rounded-full" style="width: 0%;" data-val="90%"></div>
+                        </div>
+                        <div class="flex justify-between font-mono text-[9px] text-slate-500 mt-1">
+                            <span>Collaboration / Problem Solving / Presentation</span>
+                            <span>BUFF: Synergistic Coordination</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03_EDUCATION SECTION -->
+        <section id="education" class="py-24 px-6 md:px-12 max-w-6xl mx-auto relative">
+            <div class="absolute -right-12 top-1/3 w-64 h-64 bg-cyber-purple/5 blur-[100px] rounded-full"></div>
+            
+            <div class="flex flex-col items-center text-center gap-4 mb-16">
+                <div class="text-xs font-mono text-cyber-cyan tracking-widest">[03_ACADEMIC_IMPLANTS]</div>
+                <h3 class="text-3xl md:text-5xl font-extrabold">Education History</h3>
+                <div class="w-16 h-1 bg-cyber-cyan"></div>
+            </div>
+
+            <!-- Timeline style -->
+            <div class="relative border-l-2 border-cyber-cyan/25 ml-4 md:ml-12 flex flex-col gap-12">
+                <!-- Timeline item 1: BE -->
+                <div class="relative pl-8 group">
+                    <!-- Glow node -->
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-cyber-dark border-2 border-cyber-cyan rounded-full group-hover:bg-cyber-cyan group-hover:shadow-[0_0_10px_var(--neon-cyan)] transition-all duration-300"></span>
+                    
+                    <div class="cyber-card rounded-2xl p-6 border border-white/5 flex flex-col md:flex-row justify-between gap-4">
+                        <div class="flex flex-col gap-2">
+                            <span class="font-mono text-xs text-cyber-cyan font-bold tracking-widest">CURRENTLY PURSUING</span>
+                            <h4 class="text-xl font-bold group-hover:text-cyber-cyan transition-colors">Bachelor of Engineering (B.E)</h4>
+                            <p class="text-slate-300 text-sm font-semibold">Information Science and Engineering</p>
+                            <p class="text-slate-400 text-xs mt-1 font-sans">KLS Gogte Institute of Technology, Belgavi</p>
+                        </div>
+                        <div class="flex flex-col md:items-end justify-between gap-2 font-mono">
+                            <span class="bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan text-xs px-3 py-1 rounded w-fit">2024 - 2028</span>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-widest">Active_Semester_Log</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline item 2: PU College -->
+                <div class="relative pl-8 group">
+                    <!-- Glow node -->
+                    <span class="absolute -left-[9px] top-1.5 w-4 h-4 bg-cyber-dark border-2 border-cyber-purple rounded-full group-hover:bg-cyber-purple group-hover:shadow-[0_0_10px_var(--neon-purple)] transition-all duration-300"></span>
+                    
+                    <div class="cyber-card rounded-2xl p-6 border border-white/5 flex flex-col md:flex-row justify-between gap-4">
+                        <div class="flex flex-col gap-2">
+                            <span class="font-mono text-xs text-cyber-purple font-bold tracking-widest">PRE-UNIVERSITY EDUCATION</span>
+                            <h4 class="text-xl font-bold group-hover:text-cyber-purple transition-colors">Prism PU College, Dharwad</h4>
+                            <p class="text-slate-300 text-sm font-semibold">Science Stream (PCMB)</p>
+                            <p class="text-slate-400 text-xs mt-1 font-sans">Board of Pre-University Education, Karnataka</p>
+                        </div>
+                        <div class="flex flex-col md:items-end justify-between gap-2 font-mono">
+                            <span class="bg-cyber-purple/10 border border-cyber-purple/30 text-cyber-purple text-xs px-3 py-1 rounded w-fit">2022 - 2024</span>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-widest">Archived_Record</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04_SKILLS SECTION -->
+        <section id="skills" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative grid-lines">
+            <div class="absolute right-0 top-1/2 w-64 h-64 bg-cyber-cyan/5 blur-[100px] rounded-full"></div>
+            
+            <div class="flex flex-col items-center text-center gap-4 mb-16">
+                <div class="text-xs font-mono text-cyber-cyan tracking-widest">[04_SYSTEM_PROTOCOLS]</div>
+                <h3 class="text-3xl md:text-5xl font-extrabold">Skills Directory</h3>
+                <div class="w-16 h-1 bg-cyber-cyan"></div>
+            </div>
+
+            <!-- Categories of Skills -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Skill Group 1: Core CS -->
+                <div class="cyber-card rounded-2xl p-6 border border-white/5 relative flex flex-col gap-6">
+                    <div class="font-mono text-xs text-cyber-cyan uppercase tracking-widest border-b border-cyber-cyan/15 pb-2 flex items-center justify-between">
+                        <span>01 / Core_CS</span>
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <ul class="flex flex-col gap-4 font-mono text-sm">
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-code text-cyber-pink"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Basic DSA</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-cubes text-cyber-pink"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">OOPs Concept</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-database text-cyber-pink"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">DBMS & SQL</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-puzzle-piece text-cyber-pink"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Problem Solving</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Skill Group 2: Frontend -->
+                <div class="cyber-card rounded-2xl p-6 border border-white/5 relative flex flex-col gap-6">
+                    <div class="font-mono text-xs text-cyber-pink uppercase tracking-widest border-b border-cyber-pink/15 pb-2 flex items-center justify-between">
+                        <span>02 / Frontend</span>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <ul class="flex flex-col gap-4 font-mono text-sm">
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-brands fa-html5 text-cyber-cyan"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">HTML5 Structure</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-brands fa-css3-alt text-cyber-cyan"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">CSS3 Styling</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-brands fa-js text-cyber-cyan"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">JavaScript ES6</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-palette text-cyber-cyan"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Tailwind CSS</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Skill Group 3: APIs & Tooling -->
+                <div class="cyber-card rounded-2xl p-6 border border-white/5 relative flex flex-col gap-6">
+                    <div class="font-mono text-xs text-cyber-purple uppercase tracking-widest border-b border-cyber-purple/15 pb-2 flex items-center justify-between">
+                        <span>03 / Tooling</span>
+                        <i class="fa-solid fa-toolbox"></i>
+                    </div>
+                    <ul class="flex flex-col gap-4 font-mono text-sm">
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-link text-cyber-green"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">REST APIs</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-brands fa-git-alt text-cyber-green"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Git & GitHub</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-terminal text-cyber-green"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">VS Code Shell</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-envelope-open text-cyber-green"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Postman Client</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Skill Group 4: GenAI & Soft Skills -->
+                <div class="cyber-card rounded-2xl p-6 border border-white/5 relative flex flex-col gap-6">
+                    <div class="font-mono text-xs text-cyber-green uppercase tracking-widest border-b border-cyber-green/15 pb-2 flex items-center justify-between">
+                        <span>04 / AI_Soft</span>
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <ul class="flex flex-col gap-4 font-mono text-sm">
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-brain text-cyber-orange"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Generative AI</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-bolt text-cyber-orange"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Prompt Engineering</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-people-group text-cyber-orange"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Teamwork</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <i class="fa-solid fa-comments text-cyber-orange"></i>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">Communication</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 05_PROJECTS SECTION -->
+        <section id="projects" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative">
+            <div class="absolute -right-12 top-0 w-48 h-48 bg-cyber-pink/5 blur-[80px] rounded-full"></div>
+            
+            <div class="flex flex-col items-center text-center gap-4 mb-16">
+                <div class="text-xs font-mono text-cyber-cyan tracking-widest">[05_DEPLOYED_PROJECTS]</div>
+                <h3 class="text-3xl md:text-5xl font-extrabold">Software Project Archives</h3>
+                <div class="w-16 h-1 bg-cyber-cyan"></div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Project Card 1: Khet Saathi -->
+                <div class="cyber-card rounded-2xl border border-white/5 overflow-hidden flex flex-col justify-between group">
+                    <div class="relative h-48 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-white/5">
+                        <div class="absolute inset-0 bg-cyber-cyan/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <!-- Decorative grids inside frame -->
+                        <div class="absolute inset-0 grid-lines opacity-20"></div>
+                        
+                        <!-- Project Icon or Sticker Mascot overlay -->
+                        <div class="text-center relative z-10 flex flex-col items-center gap-2">
+                            <img src="stickers/small_front_right.png" class="sticker-wiggle h-24 object-contain" alt="Khet Saathi Sticker">
+                            <span class="font-mono text-xs text-cyber-cyan uppercase tracking-widest font-bold">Khet Saathi webapp</span>
+                        </div>
+                        
+                        <div class="absolute top-2 right-2 bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan font-mono text-[9px] px-2 py-0.5 rounded">
+                            ACTIVE_DEV
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 flex-1 flex flex-col justify-between gap-6">
+                        <div class="flex flex-col gap-3">
+                            <h4 class="text-xl font-bold group-hover:text-cyber-cyan transition-colors">Khet Saathi</h4>
+                            <p class="text-slate-400 text-xs font-sans leading-relaxed">
+                                A farmer-friendly web application built to guide farmers in agricultural planning. Provides features like crop recommendation algorithms, real-time localized weather updates, and live market rate tracking.
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 text-[9px] font-mono text-slate-400">
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">HTML</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">CSS</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">JavaScript</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">REST APIs</span>
+                        </div>
+
+                        <div class="flex justify-between items-center border-t border-white/5 pt-4">
+                            <a href="#" class="text-xs font-mono text-cyber-cyan hover:underline hover:text-glow-cyan"><i class="fa-solid fa-link mr-1.5"></i>Launch Demo</a>
+                            <a href="#" class="text-xs font-mono text-slate-400 hover:text-white"><i class="fa-brands fa-github mr-1.5"></i>Source Code</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Card 2: Finance Tracker -->
+                <div class="cyber-card rounded-2xl border border-white/5 overflow-hidden flex flex-col justify-between group">
+                    <div class="relative h-48 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-white/5">
+                        <div class="absolute inset-0 bg-cyber-purple/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="absolute inset-0 grid-lines opacity-20"></div>
+                        
+                        <div class="text-center relative z-10 flex flex-col items-center gap-2">
+                            <img src="stickers/large_front.png" class="h-24 object-contain filter hue-rotate-90" alt="Finance Tracker Sticker">
+                            <span class="font-mono text-xs text-cyber-purple uppercase tracking-widest font-bold">FINANCE TRACKER</span>
+                        </div>
+                        
+                        <div class="absolute top-2 right-2 bg-cyber-purple/10 border border-cyber-purple/30 text-cyber-purple font-mono text-[9px] px-2 py-0.5 rounded">
+                            RELEASED
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 flex-1 flex flex-col justify-between gap-6">
+                        <div class="flex flex-col gap-3">
+                            <h4 class="text-xl font-bold group-hover:text-cyber-purple transition-colors">Finance Tracker</h4>
+                            <p class="text-slate-400 text-xs font-sans leading-relaxed">
+                                A dashboard application for tracking personal income, expenses, and monthly savings. Features clean statistical visual graphs, customizable transaction categories, and a relational DBMS logging database.
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 text-[9px] font-mono text-slate-400">
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">JavaScript</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">SQL</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">DBMS</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">HTML/CSS</span>
+                        </div>
+
+                        <div class="flex justify-between items-center border-t border-white/5 pt-4">
+                            <a href="#" class="text-xs font-mono text-cyber-purple hover:underline"><i class="fa-solid fa-link mr-1.5"></i>Launch Demo</a>
+                            <a href="#" class="text-xs font-mono text-slate-400 hover:text-white"><i class="fa-brands fa-github mr-1.5"></i>Source Code</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Card 3: DSA Showcase -->
+                <div class="cyber-card rounded-2xl border border-white/5 overflow-hidden flex flex-col justify-between group">
+                    <div class="relative h-48 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-white/5">
+                        <div class="absolute inset-0 bg-cyber-pink/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="absolute inset-0 grid-lines opacity-20"></div>
+                        
+                        <div class="text-center relative z-10 flex flex-col items-center gap-2">
+                            <img src="stickers/small_front_left.png" class="sticker-wiggle h-24 object-contain" alt="DSA Showcase Sticker">
+                            <span class="font-mono text-xs text-cyber-pink uppercase tracking-widest font-bold">ALGO_PLAYGROUND</span>
+                        </div>
+                        
+                        <div class="absolute top-2 right-2 bg-cyber-pink/10 border border-cyber-pink/30 text-cyber-pink font-mono text-[9px] px-2 py-0.5 rounded">
+                            COMPLETED
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 flex-1 flex flex-col justify-between gap-6">
+                        <div class="flex flex-col gap-3">
+                            <h4 class="text-xl font-bold group-hover:text-cyber-pink transition-colors">DSA Based Projects</h4>
+                            <p class="text-slate-400 text-xs font-sans leading-relaxed">
+                                A repository of interactive data structure visualizations. Includes step-by-step graphical displays of sorting algorithms (QuickSort, MergeSort), pathfinding heuristics, and binary tree traversal tracers.
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 text-[9px] font-mono text-slate-400">
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">JavaScript</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">HTML Canvas</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">Algorithms</span>
+                            <span class="bg-slate-900 border border-white/5 px-2 py-1 rounded">OOPs</span>
+                        </div>
+
+                        <div class="flex justify-between items-center border-t border-white/5 pt-4">
+                            <a href="#" class="text-xs font-mono text-cyber-pink hover:underline"><i class="fa-solid fa-link mr-1.5"></i>Launch Demo</a>
+                            <a href="#" class="text-xs font-mono text-slate-400 hover:text-white"><i class="fa-brands fa-github mr-1.5"></i>Source Code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06_CORE_SHELL SECTION -->
+        <section id="terminal" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative grid-lines">
+            <div class="absolute left-12 top-1/2 w-48 h-48 bg-cyber-green/5 blur-[90px] rounded-full"></div>
+            
+            <div class="flex flex-col items-center text-center gap-4 mb-12">
+                <div class="text-xs font-mono text-cyber-green tracking-widest">[06_SECURE_OS_TERMINAL]</div>
+                <h3 class="text-3xl md:text-5xl font-extrabold">Secure Core Shell</h3>
+                <div class="w-16 h-1 bg-cyber-green"></div>
+            </div>
+
+            <!-- Terminal block -->
+            <div class="max-w-4xl mx-auto terminal-window rounded-xl overflow-hidden flex flex-col h-[480px]">
+                <!-- Header of Terminal -->
+                <div class="terminal-header py-3 px-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                    </div>
+                    <div class="font-mono text-xs text-slate-400 select-none">guest@sanjana-patil-os:~ (bash)</div>
+                    <div class="w-12"></div>
+                </div>
+
+                <!-- Body / Terminal Lines -->
+                <div class="flex-1 p-6 overflow-y-auto font-mono text-xs md:text-sm text-slate-300 flex flex-col gap-2 bg-[#05070a]/90" id="terminal-body">
+                    <div>SANJANA-OS v2.4.0 (c) 2026 Patil Inc.</div>
+                    <div>Core protocols running. Secure network connection established.</div>
+                    <div class="text-cyber-green">Type 'help' to audit system commands or 'sudo hack' to run code matrix.</div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="text-cyber-pink">guest@sanjana-patil:~$</span>
+                        <span class="text-slate-400">help</span>
+                    </div>
+                    <div class="text-slate-400 ml-4">
+                        Available commands:<br>
+                        - <span class="text-cyber-cyan">about</span> : General profile configuration overview<br>
+                        - <span class="text-cyber-cyan">skills</span> : Output skills database inventory<br>
+                        - <span class="text-cyber-cyan">projects</span> : Output list of key software projects<br>
+                        - <span class="text-cyber-cyan">contact</span> : Get details to inject transmissions<br>
+                        - <span class="text-cyber-cyan">stickers</span> : Drop a randomized companion on the page<br>
+                        - <span class="text-cyber-cyan">clear</span> : Flush shell audit history<br>
+                        - <span class="text-cyber-cyan">sudo hack</span> : Execute security audit visualization [CRITICAL]
+                    </div>
+                    <!-- Dynamic prompt lines append here -->
+                </div>
+
+                <!-- Input Prompt Line -->
+                <div class="bg-black/80 border-t border-white/5 py-3 px-4 flex items-center gap-2">
+                    <span class="text-cyber-pink font-mono text-xs md:text-sm select-none">guest@sanjana-patil:~$</span>
+                    <input type="text" id="terminal-input-field" class="terminal-input text-xs md:text-sm" autofocus autocomplete="off" placeholder="Enter command...">
+                </div>
+            </div>
+        </section>
+
+        <!-- 07_CONTACT SECTION -->
+        <section id="contact" class="py-24 px-6 md:px-12 max-w-5xl mx-auto relative">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyber-pink/5 blur-[120px] rounded-full"></div>
+            
+            <div class="flex flex-col items-center text-center gap-4 mb-16">
+                <div class="text-xs font-mono text-cyber-pink tracking-widest">[07_INJECT_COMMUNICATION]</div>
+                <h3 class="text-3xl md:text-5xl font-extrabold">Inject Transmission</h3>
+                <div class="w-16 h-1 bg-cyber-pink"></div>
+            </div>
+
+            <div class="grid md:grid-cols-12 gap-8 items-stretch relative z-10 select-text">
+                <!-- Info Panel -->
+                <div class="md:col-span-5 cyber-card rounded-2xl p-6 flex flex-col justify-between border border-white/5">
+                    <div class="flex flex-col gap-6">
+                        <div class="font-mono text-xs text-cyber-pink uppercase tracking-widest">Connect Info //</div>
+                        <h4 class="text-lg font-bold">Secure Core Nodes</h4>
+                        
+                        <div class="flex flex-col gap-4 font-mono text-xs text-slate-400">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-envelope text-cyber-pink text-sm w-5 text-center"></i>
+                                <a href="mailto:sanjupatil1029@gmail.com" class="hover:text-cyber-cyan transition-colors">sanjupatil1029@gmail.com</a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-phone text-cyber-pink text-sm w-5 text-center"></i>
+                                <a href="tel:6360185950" class="hover:text-cyber-cyan transition-colors">6360185950</a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-location-dot text-cyber-pink text-sm w-5 text-center"></i>
+                                <span>Karnataka, India</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-clock text-cyber-pink text-sm w-5 text-center"></i>
+                                <span>UTC+5:30 (IST)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social accounts and Mascot sticker waving -->
+                    <div class="flex flex-col gap-6 mt-8">
+                        <div class="flex gap-4">
+                            <a href="https://github.com/sanjupatil1029-code" target="_blank" class="w-10 h-10 border border-white/10 hover:border-cyber-cyan hover:text-cyber-cyan bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 transition-all duration-300 hover:scale-105" title="GitHub">
+                                <i class="fa-brands fa-github text-lg"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/in/sanjana-patil-1a1b98332?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" class="w-10 h-10 border border-white/10 hover:border-cyber-cyan hover:text-cyber-cyan bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 transition-all duration-300 hover:scale-105" title="LinkedIn">
+                                <i class="fa-brands fa-linkedin-in text-lg"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 border border-white/10 hover:border-cyber-cyan hover:text-cyber-cyan bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 transition-all duration-300 hover:scale-105" title="Twitter">
+                                <i class="fa-brands fa-twitter text-lg"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 bg-cyber-dark/80 p-3 rounded-xl border border-white/5">
+                            <img src="stickers/small_front_left.png" class="h-12 object-contain" alt="Waving Mascot">
+                            <p class="font-mono text-[9px] text-slate-400 leading-relaxed uppercase">
+                                Transmission systems active. Packets routed securely through end-to-end nodes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Panel -->
+                <form id="contact-form" class="md:col-span-7 cyber-card rounded-2xl p-6 border border-white/5 flex flex-col gap-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5 font-mono text-xs">
+                            <label for="form-name" class="text-slate-400">SENDER_NAME</label>
+                            <input type="text" id="form-name" required class="bg-[#05070a] border border-white/10 focus:border-cyber-pink focus:shadow-[0_0_10px_rgba(255,0,127,0.2)] text-white p-3 rounded outline-none transition-all duration-200">
+                        </div>
+                        <div class="flex flex-col gap-1.5 font-mono text-xs">
+                            <label for="form-email" class="text-slate-400">SENDER_EMAIL</label>
+                            <input type="email" id="form-email" required class="bg-[#05070a] border border-white/10 focus:border-cyber-pink focus:shadow-[0_0_10px_rgba(255,0,127,0.2)] text-white p-3 rounded outline-none transition-all duration-200">
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1.5 font-mono text-xs">
+                        <label for="form-subject" class="text-slate-400">TRANSMISSION_SUBJECT</label>
+                        <input type="text" id="form-subject" required class="bg-[#05070a] border border-white/10 focus:border-cyber-pink focus:shadow-[0_0_10px_rgba(255,0,127,0.2)] text-white p-3 rounded outline-none transition-all duration-200">
+                    </div>
+                    
+                    <div class="flex flex-col gap-1.5 font-mono text-xs">
+                        <label for="form-message" class="text-slate-400">TRANSMISSION_PAYLOAD</label>
+                        <textarea id="form-message" required rows="4" class="bg-[#05070a] border border-white/10 focus:border-cyber-pink focus:shadow-[0_0_10px_rgba(255,0,127,0.2)] text-white p-3 rounded outline-none transition-all duration-200 resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-cyber btn-cyber-pink py-3 px-6 mt-2 rounded tracking-widest text-xs uppercase flex items-center justify-center gap-2 select-none">
+                        <span>Inject_Transmission_Payload</span>
+                        <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/5 py-8 text-center text-xs font-mono text-slate-500 bg-[#050608]">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>&copy; 2026 Sanjana Patil. All Rights Reserved.</div>
+            <div class="flex gap-4">
+                <span>SECURE_SHELL: ONLINE</span>
+                <span>//</span>
+                <span>STATUS: READY_TO_CODE</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core Javascript logic -->
+    <script src="script.js"></script>
+</body>
+</html>
